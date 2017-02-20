@@ -8,6 +8,7 @@ IDENTITY=""
 FILENAME=""
 SSH_COMMAND="ssh"
 SSH_ARGS=""
+REMOTE_SSH_COMMAND=""
 SYNCHRONIZE_PANES="true"
 TMUX_LAYOUT="tiled"
 
@@ -102,6 +103,7 @@ analyseParameters() {
 				shift;;
 			-sa|--ssh_args) SSH_ARGS="${SSH_ARGS} $2"; shift;;
 			-ss|-csc|--ssh_command|--custom-ssh-command) SSH_COMMAND="$2"; shift;;
+			-rsc|--remote_shell_command) REMOTE_SSH_COMMAND="$2"; shift;;
 			-ts|--tmux-session-name) TMUX_SESSION_NAME="$2"; shift;;
 			-tl|--tmuxlayout)
 				case "$2" in
@@ -286,6 +288,11 @@ for host in ${HOSTS}; do
 
 	# Finalize connect-string
 	connectString="${SSH_COMMAND} ${connectString}"
+
+	# Send remote shell commands after login
+	if [ "${REMOTE_SSH_COMMAND}" != "" ]; then
+		connectString="${connectString} \"${REMOTE_SSH_COMMAND}; bash -l\""
+	fi
 
 	# Output
 	output "* Connecting '${connectString}'"
