@@ -7,6 +7,7 @@ USER=""
 IDENTITY=""
 FILENAME=""
 SSH_COMMAND="ssh"
+BASH_COMMAND="bash"
 SSH_ARGS=""
 REMOTE_SSH_COMMAND=""
 SYNCHRONIZE_PANES="true"
@@ -19,7 +20,7 @@ CONFIG_SETTING_NAME=""
 
 # Outputs script syntax and help
 syntax() {
-	echo "Syntax: ${THIS_BASENAME} [-h|-u [user]|-c|--certificate|-i|--identity [path to certificate-/identity-file]|-sc [ssh-server-connect-string]|-sa [additional ssh arguments]|-ss,-csc [ssh-command]|-ts [session-name]|-ns|-tl [tmux-layout]|-set|-q|-f [filename]|-cs [name of config-parameters to use]|[-dc,-ds][-cf config-file]]"
+	echo "Syntax: ${THIS_BASENAME} [-h|-u [user]|-c|--certificate|-i|--identity [path to certificate-/identity-file]|-sc [ssh-server-connect-string]|-sa [additional ssh arguments]|-ss,-csc [ssh-command]|-bs [bash-command]|-rsc [remote-shell-command]|-ts [session-name]|-ns|-tl [tmux-layout]|-set|-q|-f [filename]|-cs [name of config-parameters to use]|[-dc,-ds][-cf config-file]]"
 	echo
 
 	echo "-h | --help                                This help."
@@ -40,6 +41,14 @@ syntax() {
 
 	echo "-ss, -cs |"
 	echo "	--ssh_command, --custom-cssh-command     SSH command to use."
+	echo
+
+	echo "-bs | --bash-command"
+	echo "  --custom-bash-command                    Remote bash command, using with -rsc. Default: ${BASH_COMMAND}"
+	echo
+
+	echo "-rsc | --remote-shell-command              Send remote shell commands, after login to remote hosts. "
+	echo "                                           Example: ${THIS_BASENAME} host1 host2 host3 -sa \"-t\" -rsc \"pwd\""
 	echo
 
 	echo "-ts | --tmux-session-name                  Alternative tmux-session-name, default: ${THIS_BASENAME}"
@@ -103,7 +112,8 @@ analyseParameters() {
 				shift;;
 			-sa|--ssh_args) SSH_ARGS="${SSH_ARGS} $2"; shift;;
 			-ss|-csc|--ssh_command|--custom-ssh-command) SSH_COMMAND="$2"; shift;;
-			-rsc|--remote_shell_command) REMOTE_SSH_COMMAND="$2"; shift;;
+			-bs|--bash-command|--custom-bash-command) BASH_COMMAND="$2"; shift;;
+			-rsc|--remote-shell-command) REMOTE_SSH_COMMAND="$2"; shift;;
 			-ts|--tmux-session-name) TMUX_SESSION_NAME="$2"; shift;;
 			-tl|--tmuxlayout)
 				case "$2" in
@@ -291,7 +301,7 @@ for host in ${HOSTS}; do
 
 	# Send remote shell commands after login
 	if [ "${REMOTE_SSH_COMMAND}" != "" ]; then
-		connectString="${connectString} \"${REMOTE_SSH_COMMAND}; bash -l\""
+		connectString="${connectString} \"${REMOTE_SSH_COMMAND}; ${BASH_COMMAND} -l\""
 	fi
 
 	# Output
